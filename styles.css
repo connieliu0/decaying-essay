@@ -1,0 +1,208 @@
+/* Base styles */
+body {
+  font-family: sans-serif;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Link styling */
+.multi-link {
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.multi-link:hover {
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+.multi-link-active {
+  background-color: rgba(255, 255, 0, 0.3);
+  pointer-events: none; /* Disable further clicks while active */
+}
+
+/* Link menu styling */
+.link-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 5px 0;
+  z-index: 1000;
+  min-width: 150px;
+  display: none;
+}
+
+.link-menu a {
+  display: block;
+  padding: 8px 15px;
+  text-decoration: none;
+  color: #333;
+}
+
+.link-menu a:hover {
+  background-color: #f5f5f5;
+}
+
+/* Left panel styles */
+.app {
+  margin: 0 auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 400px;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* iframe container styling */
+.iframe-container {
+  position: absolute;
+  width: 400px;
+  height: 500px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  max-height: 80vh; /* Prevent too tall iframes */
+}
+
+/* Add a slight transition for smooth dragging */
+.iframe-container.dragging {
+  transition: none;
+  opacity: 0.9;
+}
+
+.iframe-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 5px 10px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  cursor: move;
+  user-select: none;
+}
+
+.iframe-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Add space between buttons */
+}
+
+.iframe-control {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 5px;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.iframe-control:hover {
+  color: #333;
+}
+
+.iframe-control[title='Open in new tab'] {
+  font-size: 18px; /* Slightly larger for the arrow */
+  padding: 0 8px;
+}
+
+.iframe-content {
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.iframe-caption {
+  padding: 12px 15px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+  font-size: 14px;
+  color: #666;
+  text-align: left;
+  white-space: normal; /* Changed from nowrap to allow wrapping */
+  overflow: visible; /* Changed from hidden to show all text */
+  line-height: 1.4;
+  max-height: 100px; /* Maximum height for caption */
+  overflow-y: auto; /* Allow scrolling if text is too long */
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.tweet-container {
+  width: 550px; /* Twitter's default embed width */
+  height: auto; /* Allow height to adjust to content */
+  min-height: 200px; /* Minimum height for tweet container */
+}
+
+.tweet-content {
+  padding: 15px;
+  background: white;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure tweet iframe is responsive */
+.tweet-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.instagram-container {
+  width: 400px;
+  height: auto;
+  min-height: 600px; /* Increased from 500px */
+  max-height: none; /* Remove any max-height restriction */
+}
+
+.instagram-content {
+  padding: 15px;
+  background: white;
+  overflow: hidden;
+  min-height: 500px; /* Increased from 400px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto; /* Allow it to expand as needed */
+}
+
+/* Style Instagram embeds to fit container */
+.instagram-content .instagram-media {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  max-height: none !important; /* Remove max-height restriction */
+  overflow: visible !important; /* Allow content to be fully visible */
+}
+
+/* Additional styles to ensure Instagram iframes display properly */
+.instagram-content iframe {
+  min-height: 500px !important; /* Ensure iframe has enough height */
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Hide Instagram embed loading spinner */
+.instagram-content .spinner {
+  display: none;
+}
