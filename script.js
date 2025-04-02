@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Configuration
-const DECAY_TIME = 30000; // 30 seconds in milliseconds
+const DECAY_TIME = 90000; // 90 seconds in milliseconds
 let DECAY_ENABLED = true; // Can be toggled
 
 function initMultiLinks() {
