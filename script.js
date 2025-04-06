@@ -1,25 +1,25 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Initialize multi-link elements
-  initMultiLinks();
+    // Initialize multi-link elements
+    initMultiLinks();
   // Initialize Twitter widget
   loadTwitterWidget();
   // Initialize Instagram widget
   loadInstagramWidget();
-});
+  });
 
-// Configuration
+  // Configuration
 const DECAY_TIME = 90000; // 90 seconds in milliseconds
-let DECAY_ENABLED = true; // Can be toggled
+  let DECAY_ENABLED = true; // Can be toggled
 
-function initMultiLinks() {
+  function initMultiLinks() {
   // Find all elements with data-multi-links attribute
-  const multiLinkElements = document.querySelectorAll('[data-multi-links]');
-  
-  // Add click handler to each element
-  multiLinkElements.forEach(element => {
-    element.style.cursor = 'pointer';
-    element.classList.add('multi-link');
+    const multiLinkElements = document.querySelectorAll('[data-multi-links]');
     
+  // Add click handler to each element
+    multiLinkElements.forEach(element => {
+    element.style.cursor = 'pointer';
+      element.classList.add('multi-link');
+      
     element.addEventListener('click', function(event) {
       // Prevent default link behavior
       event.preventDefault();
@@ -32,61 +32,69 @@ function initMultiLinks() {
         if (linksData.length === 1) {
           const { url, description } = linksData[0];
           createIframe(url, description, 0, element);
-        } else {
+        } else if (linksData.length > 1) {
           // Create iframes for each link with proper index
           linksData.forEach((linkData, index) => {
             const { url, description } = linkData;
             createIframe(url, description, index, element);
           });
         }
+        else if (linksData.length === 0) {
+          // If no links, just show the description
+          const description = element.getAttribute('data-description') || element.textContent;
+          element.classList.add('multi-link-active');
+          setTimeout(() => {
+            element.classList.remove('multi-link-active');
+          }, DECAY_TIME);
+        }
       } catch (error) {
         console.error('Error parsing multi-links data:', error);
       }
     });
-  });
-}
-
-function showLinkMenu(event, element, links) {
-  event.stopPropagation();
-
-  // Remove any existing menus
-  const existingMenus = document.querySelectorAll('.link-menu');
-  existingMenus.forEach(menu => menu.remove());
-
-  // Create menu element
-  const menu = document.createElement('div');
-  menu.className = 'link-menu';
-
-  // Add links to the menu
-  links.forEach(link => {
-    const linkElement = document.createElement('a');
-    linkElement.href = '#';
-    linkElement.textContent = link.title || link.url;
-    linkElement.addEventListener('click', e => {
-      e.preventDefault();
-      menu.remove();
-      createIframe(link.url, link.title || element.textContent);
     });
-    menu.appendChild(linkElement);
-  });
+  }
 
-  // Position the menu near the element
-  const rect = element.getBoundingClientRect();
-  menu.style.left = `${rect.left}px`;
-  menu.style.top = `${rect.bottom + window.scrollY}px`;
-
-  // Add to body and display
-  document.body.appendChild(menu);
-  menu.style.display = 'block';
-
-  // Close menu when clicking elsewhere
-  document.addEventListener('click', function closeMenu(e) {
-    if (!menu.contains(e.target) && e.target !== element) {
-      menu.remove();
-      document.removeEventListener('click', closeMenu);
-    }
-  });
-}
+  function showLinkMenu(event, element, links) {
+    event.stopPropagation();
+    
+    // Remove any existing menus
+    const existingMenus = document.querySelectorAll('.link-menu');
+    existingMenus.forEach(menu => menu.remove());
+    
+    // Create menu element
+    const menu = document.createElement('div');
+    menu.className = 'link-menu';
+    
+    // Add links to the menu
+    links.forEach(link => {
+      const linkElement = document.createElement('a');
+      linkElement.href = '#';
+      linkElement.textContent = link.title || link.url;
+    linkElement.addEventListener('click', e => {
+        e.preventDefault();
+        menu.remove();
+        createIframe(link.url, link.title || element.textContent);
+      });
+      menu.appendChild(linkElement);
+    });
+    
+    // Position the menu near the element
+    const rect = element.getBoundingClientRect();
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = `${rect.bottom + window.scrollY}px`;
+    
+    // Add to body and display
+    document.body.appendChild(menu);
+    menu.style.display = 'block';
+    
+    // Close menu when clicking elsewhere
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target) && e.target !== element) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
 
 // Add Twitter widget script
 function loadTwitterWidget() {
@@ -109,13 +117,13 @@ function isTweetUrl(url) {
 
 // Create tweet embed
 function createTweetEmbed(url, description, index, clickedElement) {
-  const container = document.createElement('div');
+    const container = document.createElement('div');
   container.className = 'iframe-container tweet-container';
-
+    
   // Create header
-  const header = document.createElement('div');
-  header.className = 'iframe-header';
-
+    const header = document.createElement('div');
+    header.className = 'iframe-header';
+    
   // Create controls container
   const controls = document.createElement('div');
   controls.className = 'iframe-controls';
@@ -235,9 +243,9 @@ function createInstagramEmbed(url, description, index, clickedElement) {
   header.className = 'iframe-header';
   
   // Create controls container
-  const controls = document.createElement('div');
-  controls.className = 'iframe-controls';
-  
+    const controls = document.createElement('div');
+    controls.className = 'iframe-controls';
+    
   // Create open in new tab button
   const newTabButton = document.createElement('button');
   newTabButton.className = 'iframe-control';
@@ -248,8 +256,8 @@ function createInstagramEmbed(url, description, index, clickedElement) {
   };
   
   // Create close button
-  const closeButton = document.createElement('button');
-  closeButton.className = 'iframe-control';
+    const closeButton = document.createElement('button');
+    closeButton.className = 'iframe-control';
   closeButton.innerHTML = '×';
   closeButton.onclick = () => {
     container.remove();
@@ -257,11 +265,11 @@ function createInstagramEmbed(url, description, index, clickedElement) {
   
   // Add buttons to controls
   controls.appendChild(newTabButton);
-  controls.appendChild(closeButton);
+    controls.appendChild(closeButton);
   
   // Add controls to header
-  header.appendChild(controls);
-  
+    header.appendChild(controls);
+    
   // Create Instagram container
   const instagramContainer = document.createElement('div');
   instagramContainer.className = 'instagram-content';
@@ -293,7 +301,7 @@ function createInstagramEmbed(url, description, index, clickedElement) {
   }
   
   // Add all elements to container
-  container.appendChild(header);
+    container.appendChild(header);
   container.appendChild(instagramContainer);
   
   // Add description as caption if it exists
@@ -305,8 +313,8 @@ function createInstagramEmbed(url, description, index, clickedElement) {
   }
   
   // Add to document
-  document.body.appendChild(container);
-  
+    document.body.appendChild(container);
+    
   // Make draggable
   makeDraggable(container, header);
   
@@ -388,6 +396,78 @@ function createInstagramEmbed(url, description, index, clickedElement) {
 
 // Update the main createIframe function to handle Instagram embeds
 function createIframe(url, description, index, clickedElement) {
+  // If URL is empty, just show the description
+  if (!url || url.trim() === '') {
+    const container = document.createElement('div');
+    container.className = 'iframe-container';
+    
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'iframe-header';
+    
+    // Create controls container
+    const controls = document.createElement('div');
+    controls.className = 'iframe-controls';
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'iframe-control';
+    closeButton.innerHTML = '×';
+    closeButton.onclick = () => {
+      container.remove();
+    };
+    
+    // Add button to controls
+    controls.appendChild(closeButton);
+    
+    // Add controls to header
+    header.appendChild(controls);
+    
+    // Create content div
+    const content = document.createElement('div');
+    content.className = 'iframe-content';
+    content.style.paddingTop = '20px';
+    content.style.paddingBottom = '20px';
+    content.style.height = '100%';
+    content.style.textAlign = 'center';
+    content.style.color = '#666';
+    content.textContent = description || 'No content available';
+    
+    // Add all elements to container
+    container.appendChild(header);
+    container.appendChild(content);
+    
+    // Add to document
+    document.body.appendChild(container);
+    
+    // Make draggable
+    makeDraggable(container, header);
+    
+    // Position near the clicked element
+    positionNearElement(container, clickedElement);
+    
+    // Set up decay timer if enabled
+    if (DECAY_ENABLED) {
+      const startTime = Date.now();
+      const fadeInterval = setInterval(() => {
+        if (document.body.contains(container)) {
+          const elapsed = Date.now() - startTime;
+          const opacity = Math.max(0, 1 - (elapsed / DECAY_TIME));
+          container.style.opacity = opacity;
+          
+          if (opacity <= 0) {
+            clearInterval(fadeInterval);
+            container.remove();
+          }
+        } else {
+          clearInterval(fadeInterval);
+        }
+      }, 50);
+    }
+    
+    return container;
+  }
+  
   if (isTweetUrl(url)) {
     return createTweetEmbed(url, description, index, clickedElement);
   } else if (isInstagramUrl(url)) {
@@ -463,10 +543,10 @@ function createIframe(url, description, index, clickedElement) {
 
   // Add to document
   document.body.appendChild(container);
-
-  // Make draggable
-  makeDraggable(container, header);
-
+    
+    // Make draggable
+    makeDraggable(container, header);
+    
   // Position near the clicked element
   positionNearElement(container, clickedElement);
 
@@ -474,7 +554,7 @@ function createIframe(url, description, index, clickedElement) {
   container.style.zIndex = getHighestZIndex();
 
   // Set up decay timer if enabled
-  if (DECAY_ENABLED) {
+    if (DECAY_ENABLED) {
     const startTime = Date.now();
     const fadeInterval = setInterval(() => {
       if (document.body.contains(container)) {
@@ -484,7 +564,7 @@ function createIframe(url, description, index, clickedElement) {
 
         if (opacity <= 0) {
           clearInterval(fadeInterval);
-          container.remove();
+        container.remove();
         }
       } else {
         clearInterval(fadeInterval);
@@ -492,59 +572,59 @@ function createIframe(url, description, index, clickedElement) {
     }, 50);
   }
 
-  return container;
-}
-
-function makeDraggable(element, handle) {
+    return container;
+  }
+  
+  function makeDraggable(element, handle) {
   let pos1 = 0,
     pos2 = 0,
     pos3 = 0,
     pos4 = 0;
-
-  handle.onmousedown = dragMouseDown;
-
-  function dragMouseDown(e) {
-    e.preventDefault();
-    // Get mouse position at start
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-
-    // Bring to front
-    element.style.zIndex = getHighestZIndex() + 1;
-
-    // Mouse events
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e.preventDefault();
-    // Calculate new position
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-
-    // Set new position
+    
+    handle.onmousedown = dragMouseDown;
+    
+    function dragMouseDown(e) {
+      e.preventDefault();
+      // Get mouse position at start
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      
+      // Bring to front
+      element.style.zIndex = getHighestZIndex() + 1;
+      
+      // Mouse events
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+    
+    function elementDrag(e) {
+      e.preventDefault();
+      // Calculate new position
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      
+      // Set new position
     element.style.top = element.offsetTop - pos2 + 'px';
     element.style.left = element.offsetLeft - pos1 + 'px';
+    }
+    
+    function closeDragElement() {
+      // Stop moving when mouse button is released
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
   }
-
-  function closeDragElement() {
-    // Stop moving when mouse button is released
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
-
-function getHighestZIndex() {
-  return Math.max(
+  
+  function getHighestZIndex() {
+    return Math.max(
     ...Array.from(document.querySelectorAll('.iframe-container')).map(
       el => parseInt(window.getComputedStyle(el).zIndex) || 0
     ),
-    99
-  );
-}
+      99
+    );
+  }
 
 // Function to position container near clicked element but not over main content
 function positionNearElement(container, element) {
@@ -613,4 +693,4 @@ function positionNearElement(container, element) {
   
   // Clear any previous right property that might have been set
   container.style.right = '';
-}
+  }
