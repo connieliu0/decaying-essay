@@ -1,5 +1,5 @@
 /* guide positions */
-:root { --split: 50vw; --line-y: 40vh; --accent: #D5FFC9; /* one colour for the highlight, reading line and new nodes */
+:root { --split: 20vw; --line-y: 25vh; --accent: #D5FFC9; /* one colour for the highlight, reading line and new nodes */
   --highlight: var(--accent); }
 /* Base styles */
 html, body {
@@ -22,11 +22,13 @@ body {
   border: solid gray 1px;
 }
 p {
-  line-height: 1.6em;
+  line-height: 1.4em;
+  word-spacing: 1px;
   font-size: 1.2em;
-  font-family:Georgia, 'Times New Roman', Times, serif;
+  font-family:Cambria, 'Times New Roman', Times, serif;
+  font-weight: 100;
 }
-h2{
+h1, h2, h4{
   font-family: Arial Narrow, Helvetica, sans-serif;
   font-weight: 100;
 }
@@ -43,7 +45,7 @@ h2{
   flex: 0 0 var(--split);
   min-width: 0;
   box-sizing: border-box;
-  padding: 0 22px;
+  padding: 0 60px 0 32px;
   position: relative;
   z-index: 1;
 }
@@ -302,6 +304,9 @@ h2{
 }
 
 @media (max-width: 880px) {
+  h1{
+  font-size: 1.5em;
+}
   .site-layout {
     display: block;
     padding: 10px;

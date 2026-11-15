@@ -1191,7 +1191,7 @@ function initGuides() {
   };
   const setLine = y => {
     if (mobileQuery.matches) { // fixed halfway up the text pane (top half of the screen)
-      state.y = window.innerHeight * 0.25;
+      state.y = window.innerHeight * 0.22;
       root.style.setProperty('--line-y', `${state.y}px`);
       return;
     }
@@ -1205,7 +1205,7 @@ function initGuides() {
     if (mobileQuery.matches) { setLine(0); return; }
     if (moved) return;
     const first = document.querySelector('.app h2 + p');
-    if (first) setLine(first.getBoundingClientRect().bottom + 24);
+    if (first) setLine(first.getBoundingClientRect().bottom+12);
   };
   placeStartLine();
   window.addEventListener('load', placeStartLine);
