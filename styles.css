@@ -1,5 +1,6 @@
 /* guide positions */
-:root { --split: 50vw; --line-y: 40vh; }
+:root { --split: 50vw; --line-y: 40vh; --accent: #D5FFC9; /* one colour for the highlight, reading line and new nodes */
+  --highlight: var(--accent); }
 /* Base styles */
 html, body {
   margin: 0;
@@ -13,6 +14,7 @@ body {
   position: relative;
   margin: 0;
   padding: 0 0 100px;
+  background-color: #FAF9F7;
 }
 .category__name{
     font-family: Arial Narrow, Helvetica, sans-serif;
@@ -158,7 +160,7 @@ h2{
 .node__label {
   flex: none;
   max-width: 220px;
-  padding: 1px 4px;
+  padding: 5px 10px;
   background: white;
   font-size: 1em;
   line-height: 1.3;
@@ -239,7 +241,7 @@ h2{
 
 /* card: title, then outlink */
 .card {
-  padding: 8px 10px;
+  padding: 12px 16px;
   color: inherit;
   text-decoration: none;
   border: 1px solid currentColor;
@@ -302,7 +304,7 @@ h2{
 @media (max-width: 880px) {
   .site-layout {
     display: block;
-    padding: 20px;
+    padding: 10px;
   }
 
   .app,
@@ -530,7 +532,7 @@ iframe {
 }
 
 .graph-lines line {
-  stroke: gray;
+  stroke: #98C78B;
   stroke-width: 1;
 }
 
@@ -595,10 +597,41 @@ iframe {
   background: repeating-linear-gradient(to right, #bbb 0 10px, transparent 10px 18px) center / 100% 4px no-repeat;
 }
 .guide.is-dragging { opacity: 0.7; }
-.sent.is-reading { background: rgba(255, 230, 120, 0.45); }
+/* highlight: padded vertically so it also fills the line-spacing between wrapped lines */
+.sent.is-reading {
+  background: var(--highlight);
+  padding: 0.28em 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* mobile: text in the top half, graph in the bottom half, reading line mid-way up the text */
 @media (max-width: 880px) {
-  .guide { display: none; }
-  .app, .reference-index { flex: none; }
+  :root { --line-y: 25vh; --line-y: 25dvh; }
+  body { padding-bottom: 0; }
+  .site-layout { display: block; }
+  .app {
+    width: 100%;
+    flex: none;
+    padding: 0;
+    padding-bottom: 50dvh;
+  }
+  .app p { font-size: 1.05em; }
+  .reference-index {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 50vh;
+    height: 50dvh;
+    background: white;
+    border-top: 1px solid #ccc;
+    z-index: 20;
+  }
+  .reference-index__inner { top: 0; }
+  .guide--v { display: none; }
+  .guide--h { pointer-events: none; }
 }
 
 /* out-of-focus nodes: clearly greyed */
@@ -618,7 +651,7 @@ iframe {
 
 /* card: title with trailing arrow; underline on hover */
 .card:hover .card__title { text-decoration: underline; }
-.card__arrow { text-decoration: none; display: inline-block; }
+.card__arrow { text-decoration: none; display: inline-block; font-size: 0.75em; vertical-align: middle; }
 
 /* section image, parked in the quadrant opposite the active node */
 .graph-image {
@@ -633,3 +666,29 @@ iframe {
   pointer-events: none;
 }
 .graph-image--visible { opacity: 1; }
+
+/* reading line turns solid, in the highlight colour, while it is on a sentence */
+.guide--h.is-active {
+  background: linear-gradient(#98C78B, #98C78B) center / 100% 6px no-repeat;
+  z-index: -1;
+}
+
+/* nodes that just unfurled (children of the open node) take the accent fill */
+.graph-node--child,
+.graph-node--child .node__label,
+.graph-node--active,
+.graph-node--active .node__label {
+  background: var(--accent);
+  border-radius: 1000px;
+}
+
+/* outermost link cards: no border */
+.graph-node--link.card {
+  border: none;
+}
+.graph-node--link.graph-node--gray {
+  background: #f2f2f2;
+}
+.graph-node--link.graph-node--child {
+  background: #e6fde0;
+}

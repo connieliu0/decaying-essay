@@ -155,9 +155,9 @@ function renderCategories(container, categories) {
 
   const simulation = d3
     .forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.target.type === 'link' ? 150 : 120)).strength(0.35))
-    .force('charge', d3.forceManyBody().strength(-150).distanceMin(10).distanceMax(300))
-    .force('collide', rectCollide(10))
+    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.target.type === 'link' ? 200 : 130)).strength(0.35))
+    .force('charge', d3.forceManyBody().strength(-220).distanceMin(10).distanceMax(400))
+    .force('collide', rectCollide(20))
     .force('x', d3.forceX().strength(0.008))
     .force('y', d3.forceY().strength(0.012))
     .alphaDecay(0.04)
@@ -315,6 +315,8 @@ function renderCategories(container, categories) {
       const focused = expanded.size === 0 || pathIds.has(item.id) || (item.parent && item.parent.id === activeId);
       item.focused = !!focused;
       if (el) el.classList.toggle('graph-node--gray', !focused);
+      if (el) el.classList.toggle('graph-node--child', !!item.parent && item.parent.id === activeId);
+      if (el) el.classList.toggle('graph-node--active', item.id === activeId);
       const open = expanded.has(item.id);
       if (open) { item.fx = item.x; item.fy = item.y; } else { item.fx = item.fy = null; }
     });
@@ -413,6 +415,12 @@ function renderCategories(container, categories) {
   window.addEventListener('resize', () => simulation.alpha(0.3).restart());
   container._graph = {
     // path like "Link rot / Realities of link rot"; opens each level, then everything under the last one
+    reset() {
+      if (expanded.size === 0 && !imgUrl) return;
+      expanded.clear();
+      setImage(null);
+      update();
+    },
     openCategory(path, image) {
       setImage(image || imageForPath(path));
       const norm = t => t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -1173,19 +1181,35 @@ function initGuides() {
   if (!vHandle || !hHandle) return;
 
   // Position state lives in JS, so dragging never depends on measuring the handle
+  const mobileQuery = window.matchMedia('(max-width: 880px)');
   const state = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.4 };
   const setSplit = x => {
+    if (mobileQuery.matches) { window.dispatchEvent(new Event('resize')); return; }
     state.x = Math.min(window.innerWidth * 0.75, Math.max(window.innerWidth * 0.25, x));
     root.style.setProperty('--split', `${state.x}px`);
     window.dispatchEvent(new Event('resize')); // lets the graph re-settle
   };
   const setLine = y => {
+    if (mobileQuery.matches) { // fixed halfway up the text pane (top half of the screen)
+      state.y = window.innerHeight * 0.25;
+      root.style.setProperty('--line-y', `${state.y}px`);
+      return;
+    }
     state.y = Math.min(window.innerHeight - 20, Math.max(20, y));
     root.style.setProperty('--line-y', `${state.y}px`);
   };
   setSplit(state.x);
-  setLine(state.y);
-  window.addEventListener('resize', () => { setLine(state.y); });
+  // start just below the first paragraph, until the user moves the line themselves
+  let moved = false;
+  const placeStartLine = () => {
+    if (mobileQuery.matches) { setLine(0); return; }
+    if (moved) return;
+    const first = document.querySelector('.app h2 + p');
+    if (first) setLine(first.getBoundingClientRect().bottom + 24);
+  };
+  placeStartLine();
+  window.addEventListener('load', placeStartLine);
+  window.addEventListener('resize', () => { if (mobileQuery.matches) setLine(0); else if (moved) setLine(state.y); else placeStartLine(); });
 
   const drag = (handle, axis, apply) => {
     handle.addEventListener('pointerdown', event => {
@@ -1195,6 +1219,7 @@ function initGuides() {
       handle.classList.add('is-dragging');
       document.body.style.userSelect = 'none';
       const move = e => {
+        moved = true;
         apply((axis === 'x' ? e.clientX : e.clientY) - offset);
         scheduleCheck();
       };
@@ -1220,11 +1245,23 @@ function initGuides() {
   function check() {
     queued = false;
     const y = hHandle.getBoundingClientRect().top + hHandle.offsetHeight / 2;
-    const hit = sentences.find(el => Array.from(el.getClientRects()).some(r => y >= r.top && y <= r.bottom));
+    // a sentence owns its whole vertical span (first line top to last line bottom), so the
+    // gaps between wrapped lines don't count as "between sentences"; the current one is sticky
+    const spans = el => {
+      const rects = Array.from(el.getClientRects());
+      return rects.length ? y >= Math.min(...rects.map(r => r.top)) && y <= Math.max(...rects.map(r => r.bottom)) : false;
+    };
+    const hit = active && spans(active) ? active : sentences.find(spans);
+    hHandle.classList.toggle('is-active', !!hit);
     if (hit === active) return;
     if (active) active.classList.remove('is-reading');
     active = hit || null;
-    if (!active) return; // keep the last category open between sentences
+    if (!active) {
+      // line is between tagged sentences: put the graph back to its resting state
+      const g = document.querySelector('#category-list')._graph;
+      if (g) g.reset();
+      return;
+    }
     active.classList.add('is-reading');
     const graph = document.querySelector('#category-list')._graph;
     if (graph) graph.openCategory(active.dataset.category, active.dataset.image);
