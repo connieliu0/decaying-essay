@@ -257,8 +257,9 @@ function renderCategories(container, categories) {
   function placeImage() {
     if (!imgNode || !imgEl) return;
     const { w, h } = size();
+    const isMobile = window.innerWidth <= 880;
     imgNode.fx = imgNode.x = 0;
-    imgNode.fy = imgNode.y = h * 0.35;
+    imgNode.fy = imgNode.y = isMobile ? h * 0.15 : h * 0.35;
     imgEl.style.left = `${w / 2}px`;
     imgEl.style.top = `${h / 2 + imgNode.fy}px`;
   }

@@ -777,7 +777,8 @@ iframe {
     border-top: 1px solid #ccc;
     z-index: 20;
   }
-  .reference-index__inner { margin-top: 52px; }
+  .reference-index__inner { position: absolute; top: 52px; left: 0; right: 0; bottom: 0; margin-top: 0; }
+  .graph-image { max-width: 50%; max-height: 30%; }
   .guide--v { display: none; }
   .guide--h { pointer-events: none; }
 
@@ -789,7 +790,7 @@ iframe {
   }
   .tree-col:first-child { padding-left: 14px; }
   .tree-col-item { padding: 6px 6px; font-size: 0.9em; }
-  .tree-section-image { max-width: 55%; max-height: 25%; }
+  .tree-section-image { max-width: 55%; max-height: 25%; right: auto; left: 50%; transform: translateX(-50%); }
   .view-toggle { top: 12px; }
   .view-toggle__btn { font-size: 1.2em; }
 }
