@@ -143,10 +143,16 @@
     <div class="spacer"></div>
   </main>
   <aside class="reference-index" aria-labelledby="reference-index-title">
+    <div class="view-toggle">
+      <button class="view-toggle__btn view-toggle__btn--active" data-view="root">root</button>
+      <span class="view-toggle__sep">|</span>
+      <button class="view-toggle__btn" data-view="list">list</button>
+    </div>
     <div class="reference-index__inner">
       <div id="category-list" class="category-list" aria-live="polite">
         <p class="reference-index__status">Loading the collection…</p>
       </div>
+      <div id="tree-list" class="tree-list" hidden></div>
     </div>
   </aside>
   </div>

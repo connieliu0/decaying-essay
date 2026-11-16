@@ -56,6 +56,25 @@ async function initReferenceIndex() {
 
     const categories = root.children;
     renderCategories(categoryList, categories);
+
+    const treeList = document.querySelector('#tree-list');
+    if (treeList) renderTreeView(treeList, categories);
+
+    const toggleBtns = document.querySelectorAll('.view-toggle__btn');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        toggleBtns.forEach(b => b.classList.toggle('view-toggle__btn--active', b === btn));
+        categoryList.style.visibility = view === 'list' ? 'hidden' : '';
+        categoryList.style.pointerEvents = view === 'list' ? 'none' : '';
+        if (treeList) {
+          treeList.hidden = view !== 'list';
+          if (view === 'list') treeList._tree?.show();
+          else treeList._tree?.hide();
+        }
+      });
+    });
+    window.addEventListener('resize', () => { if (treeList && !treeList.hidden) treeList._tree?.show(); });
   } catch (error) {
     console.error('Unable to load the research index:', error);
     categoryList.innerHTML = '';
@@ -111,8 +130,14 @@ function parseCsv(csv) {
 // (longest matching prefix wins); a sentence can also override with data-image.
 const SECTION_IMAGES = {
   'Websites of nature': './content/Websitesofnature.jpg',
+  'Websites of nature / ephemeral websites': './content/ephemeralwebsites.jpg',
+  'Websites of nature / Websites that cycle': './content/websitesthatcycle.jpg',
   'Link rot / Benefits of letting go of': './content/benefitsoflettinggo.jpg',
+  'Link rot / Realities of link rot': './content/realitiesoflinkrot.jpg',
   'Internet in organic': './content/internetinorganic.jpg',
+  'Permacomputing': './content/Permacomputing.jpg',
+  'Infrastructure / Physical storage': './content/Physicalstorage.jpg',
+  'Infrastructure / Internet / Size of the web': './content/sizeofweb.jpg',
 };
 function imageForPath(path) {
   const norm = p => p.split('/').map(s => s.trim().toLowerCase()).join(' / ');
@@ -156,7 +181,7 @@ function renderCategories(container, categories) {
   const simulation = d3
     .forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.target.type === 'link' ? 200 : 130)).strength(0.35))
-    .force('charge', d3.forceManyBody().strength(-220).distanceMin(10).distanceMax(400))
+    .force('charge', d3.forceManyBody().strength(-320).distanceMin(10).distanceMax(500))
     .force('collide', rectCollide(20))
     .force('x', d3.forceX().strength(0.008))
     .force('y', d3.forceY().strength(0.012))
@@ -168,7 +193,7 @@ function renderCategories(container, categories) {
   function rectCollide(pad) {
     let ns = [];
     const force = () => {
-      for (let pass = 0; pass < 3; pass++) {
+      for (let pass = 0; pass < 6; pass++) {
         for (let i = 0; i < ns.length; i++) {
           for (let j = i + 1; j < ns.length; j++) {
             const a = ns[i], b = ns[j];
@@ -227,14 +252,13 @@ function renderCategories(container, categories) {
     imgEl = el;
     container.insertBefore(el, svg.nextSibling);
   }
-  // choose the quadrant (of the graph panel) diagonally opposite the active node
-  function placeImage(active) {
-    if (!imgNode) return;
-    if (active) { imgNode.qx = active.x > 0 ? -1 : 1; imgNode.qy = active.y > 0 ? -1 : 1; }
+  // pin image to the bottom centre of the graph panel
+  function placeImage() {
+    if (!imgNode || !imgEl) return;
     const { w, h } = size();
-    imgNode.fx = imgNode.x = imgNode.qx * w * 0.25;
-    imgNode.fy = imgNode.y = imgNode.qy * h * 0.25;
-    imgEl.style.left = `${w / 2 + imgNode.fx}px`;
+    imgNode.fx = imgNode.x = 0;
+    imgNode.fy = imgNode.y = h * 0.35;
+    imgEl.style.left = `${w / 2}px`;
     imgEl.style.top = `${h / 2 + imgNode.fy}px`;
   }
 
@@ -292,11 +316,12 @@ function renderCategories(container, categories) {
         const base = Math.atan2(origin.y || 0.01, origin.x || 0.01);
         const spread = Math.min(Math.PI * 1.2, 0.5 * sibs.length);
         const angle = base + (sibs.length > 1 ? (k / (sibs.length - 1) - 0.5) * spread : 0);
-        const dist = 12; // start tucked at the parent; springs + collision push outward
+        const dist = 80; // start further from parent so collision can resolve without stacking
         item.x = origin.x + Math.cos(angle) * dist;
         item.y = origin.y + Math.sin(angle) * dist;
       } else {
-        item.x = (seeded(index + 1) - 0.5) * w * 0.6;
+        // top-level nodes start near the left edge
+        item.x = -(w * 0.4);
         item.y = (seeded(index + 7) - 0.5) * h * 0.6;
       }
       nodes.push(item);
@@ -305,7 +330,7 @@ function renderCategories(container, categories) {
     // the single open node is the deepest expanded one; its ancestors stay lit as the path
     const active = items.find(i => expanded.has(i.id) && !i.children.some(c => expanded.has(c.id)));
     const activeId = active ? active.id : null;
-    placeImage(active);
+    placeImage();
     const pathIds = new Set();
     for (let p = active; p; p = p.parent) pathIds.add(p.id);
     items.forEach(item => {
@@ -318,7 +343,9 @@ function renderCategories(container, categories) {
       if (el) el.classList.toggle('graph-node--child', !!item.parent && item.parent.id === activeId);
       if (el) el.classList.toggle('graph-node--active', item.id === activeId);
       const open = expanded.has(item.id);
-      if (open) { item.fx = item.x; item.fy = item.y; } else { item.fx = item.fy = null; }
+      if (open) { item.fx = item.x; item.fy = item.y; }
+      else if (!item.parent) { item.fx = null; item.fy = null; }
+      else { item.fx = item.fy = null; }
     });
 
     links.length = 0;
@@ -368,7 +395,7 @@ function renderCategories(container, categories) {
     titleEl.textContent = `${item.title} `;
     const arrow = document.createElement('span');
     arrow.className = 'card__arrow';
-    arrow.textContent = '↗';
+    arrow.textContent = '→';
     titleEl.appendChild(arrow);
     link.appendChild(titleEl);
     return link;
@@ -449,6 +476,163 @@ function renderCategories(container, categories) {
     },
   };
   update();
+}
+
+function renderTreeView(container, categories) {
+  const columnsEl = document.createElement('div');
+  columnsEl.className = 'tree-columns';
+
+  let counter = 0;
+  const toItem = (name, data) => {
+    const item = { id: `t${counter++}`, name, children: [], links: data.links };
+    data.children.forEach((child, childName) => item.children.push(toItem(childName, child)));
+    return item;
+  };
+  const tops = [];
+  categories.forEach((data, name) => tops.push(toItem(name, data)));
+
+  const rowMap = new Map(); // item.id -> rowEl
+
+  // Fixed body-level SVG overlay — avoids scroll-container positioning issues
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:15;display:none;';
+  document.body.appendChild(svg);
+  // persistent lines (category→subcategory) and hover lines (category→link on hover) are separate groups
+  const persistentG = document.createElementNS(NS, 'g');
+  const hoverG = document.createElementNS(NS, 'g');
+  svg.appendChild(persistentG);
+  svg.appendChild(hoverG);
+
+  function makeLine(x1, y1, x2, y2) {
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#98C78B');
+    line.setAttribute('stroke-width', '1');
+    return line;
+  }
+
+  function drawLines() {
+    persistentG.innerHTML = '';
+    if (container.hidden) return;
+    const cols = Array.from(columnsEl.querySelectorAll('.tree-col'));
+    for (let i = 0; i < cols.length - 1; i++) {
+      const src = cols[i].querySelector('.tree-col-item.is-active');
+      const tgt = cols[i + 1].querySelector('.tree-col-item.is-active');
+      if (!src || !tgt || tgt.classList.contains('tree-col-item--link')) continue;
+      const sr = src.getBoundingClientRect();
+      const tr = tgt.getBoundingClientRect();
+      persistentG.appendChild(makeLine(sr.right, sr.top + sr.height / 2, tr.left, tr.top + tr.height / 2));
+    }
+  }
+
+  function expandItem(item, depth, colEl) {
+    while (columnsEl.children.length > depth + 1) columnsEl.removeChild(columnsEl.lastChild);
+    colEl.querySelectorAll('.tree-col-item').forEach(r => r.classList.remove('is-active'));
+    const rowEl = rowMap.get(item.id);
+    if (rowEl) rowEl.classList.add('is-active');
+    const childItems = [
+      ...item.children,
+      ...item.links.map(l => ({ id: `t${counter++}`, name: l.title || formatLinkLabel(l.url), url: l.url, children: [], links: [] })),
+    ];
+    columnsEl.appendChild(buildColumn(childItems, depth + 1));
+    setTimeout(() => { columnsEl.scrollLeft = columnsEl.scrollWidth; drawLines(); updateTreeImage(); }, 30);
+  }
+
+  function buildColumn(items, depth) {
+    const col = document.createElement('div');
+    col.className = 'tree-col';
+    col.dataset.depth = depth;
+    items.forEach(item => {
+      const isLink = !!item.url;
+      const hasChildren = !isLink && (item.children.length > 0 || item.links.length > 0);
+      const row = document.createElement('div');
+      row.className = 'tree-col-item' + (hasChildren ? ' tree-col-item--expandable' : '') + (isLink ? ' tree-col-item--link' : '');
+      if (isLink) {
+        const a = document.createElement('a');
+        a.className = 'tree-col-link';
+        a.href = item.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.textContent = item.name + ' ';
+        const arrow = document.createElement('span');
+        arrow.className = 'card__arrow';
+        arrow.textContent = '→';
+        a.appendChild(arrow);
+        row.appendChild(a);
+        // show hover line from parent active item to this link
+        row.addEventListener('mouseenter', () => {
+          hoverG.innerHTML = '';
+          const prevCol = columnsEl.children[depth - 1];
+          if (!prevCol) return;
+          const src = prevCol.querySelector('.tree-col-item.is-active');
+          if (!src) return;
+          const sr = src.getBoundingClientRect();
+          const tr = row.getBoundingClientRect();
+          hoverG.appendChild(makeLine(sr.right, sr.top + sr.height / 2, tr.left, tr.top + tr.height / 2));
+        });
+        row.addEventListener('mouseleave', () => { hoverG.innerHTML = ''; });
+      } else {
+        const label = document.createElement('span');
+        label.className = 'tree-col-label';
+        label.textContent = item.name;
+        row.appendChild(label);
+      }
+      rowMap.set(item.id, row);
+      if (hasChildren) row.addEventListener('click', () => expandItem(item, depth, col));
+      col.appendChild(row);
+    });
+    return col;
+  }
+
+  columnsEl.appendChild(buildColumn(tops, 0));
+  container.appendChild(columnsEl);
+
+  // section image at the bottom of the list view
+  const treeImg = document.createElement('img');
+  treeImg.className = 'tree-section-image';
+  treeImg.alt = '';
+  container.appendChild(treeImg);
+
+  function updateTreeImage() {
+    const cols = Array.from(columnsEl.querySelectorAll('.tree-col'));
+    const parts = [];
+    for (const col of cols) {
+      const active = col.querySelector('.tree-col-item.is-active:not(.tree-col-item--link)');
+      if (!active) break;
+      parts.push((active.querySelector('.tree-col-label') || active).textContent.trim());
+    }
+    const path = parts.join(' / ');
+    const url = path ? imageForPath(path) : null;
+    if (url) { treeImg.src = url; treeImg.classList.add('tree-section-image--visible'); }
+    else { treeImg.classList.remove('tree-section-image--visible'); }
+  }
+
+  const norm = t => t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  function resetTree() {
+    while (columnsEl.children.length > 1) columnsEl.removeChild(columnsEl.lastChild);
+    columnsEl.children[0].querySelectorAll('.tree-col-item').forEach(r => r.classList.remove('is-active'));
+    persistentG.innerHTML = '';
+    hoverG.innerHTML = '';
+    treeImg.classList.remove('tree-section-image--visible');
+  }
+
+  container._tree = {
+    reset: resetTree,
+    show() { svg.style.display = ''; drawLines(); },
+    hide() { svg.style.display = 'none'; },
+    openCategory(path) {
+      const parts = path.split('/').map(p => p.trim()).filter(Boolean);
+      resetTree();
+      let level = tops;
+      for (let i = 0; i < parts.length; i++) {
+        const hit = level.find(item => norm(item.name).startsWith(norm(parts[i])));
+        if (!hit || (!hit.children.length && !hit.links.length)) break;
+        expandItem(hit, i, columnsEl.children[i]);
+        level = hit.children;
+      }
+    },
+  };
 }
 
 // Stable pseudo-random number in [0, 1)
@@ -1257,15 +1441,18 @@ function initGuides() {
     if (active) active.classList.remove('is-reading');
     active = hit || null;
     if (!active) {
-      // line is between tagged sentences: put the graph back to its resting state
       const g = document.querySelector('#category-list')._graph;
       if (g) g.reset();
+      const t = document.querySelector('#tree-list')._tree;
+      if (t) t.reset();
       return;
     }
     active.classList.add('is-reading');
     const graph = document.querySelector('#category-list')._graph;
     if (graph) graph.openCategory(active.dataset.category, active.dataset.image);
-    else { active.classList.remove('is-reading'); active = null; setTimeout(scheduleCheck, 500); } // graph not ready yet
+    else { active.classList.remove('is-reading'); active = null; setTimeout(scheduleCheck, 500); }
+    const tree = document.querySelector('#tree-list')._tree;
+    if (tree) tree.openCategory(active.dataset.category);
   }
   function scheduleCheck() {
     if (!queued) { queued = true; requestAnimationFrame(check); }
