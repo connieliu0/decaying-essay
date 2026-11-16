@@ -120,7 +120,7 @@ img{
 /* view toggle */
 .view-toggle {
   position: absolute;
-  top: 12px;
+  top: 22px;
   left: 14px;
   z-index: 10;
   display: flex;
@@ -790,7 +790,7 @@ iframe {
   .tree-col:first-child { padding-left: 14px; }
   .tree-col-item { padding: 6px 6px; font-size: 0.9em; }
   .tree-section-image { max-width: 55%; max-height: 25%; }
-  .view-toggle { top: 10px; }
+  .view-toggle { top: 12px; }
   .view-toggle__btn { font-size: 1.2em; }
 }
 
