@@ -843,6 +843,13 @@ iframe {
   border-radius: 1000px;
 }
 
+/* link cards are multi-line so a pill radius clips the text; use a gentle curve instead */
+.graph-node--link.graph-node--child,
+.graph-node--link.graph-node--active {
+  border-radius: 16px;
+  padding: 6px 10px;
+}
+
 /* outermost link cards: no border */
 .graph-node--link.card {
   border: none;

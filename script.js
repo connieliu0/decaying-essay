@@ -158,6 +158,12 @@ function renderCategories(container, categories) {
   svg.setAttribute('class', 'graph-lines');
   container.appendChild(svg);
 
+  const imgLine = document.createElementNS(NS, 'line');
+  imgLine.setAttribute('stroke', '#98C78B');
+  imgLine.setAttribute('stroke-width', '1');
+  imgLine.style.display = 'none';
+  svg.appendChild(imgLine);
+
   // Turn the Map tree into plain items: { id, type, title, url, children }
   let counter = 0;
   const toItem = (name, data, parent) => {
@@ -225,6 +231,7 @@ function renderCategories(container, categories) {
   let imgNode = null;
   let imgEl = null;
   let imgUrl = null;
+  let lastActive = null;
   function setImage(url) {
     if (url === imgUrl) return;
     imgUrl = url;
@@ -241,7 +248,9 @@ function renderCategories(container, categories) {
     el.alt = '';
     el.addEventListener('load', () => {
       if (imgEl !== el) return;
-      imgNode = { id: '__image', w: el.offsetWidth, h: el.offsetHeight, x: 0, y: 0, qx: 1, qy: 1 };
+      const qx = lastActive ? (lastActive.x > 0 ? -1 : 1) : -1;
+      const qy = lastActive ? (lastActive.y > 0 ? -1 : 1) : -1;
+      imgNode = { id: '__image', w: el.offsetWidth, h: el.offsetHeight, x: 0, y: 0, qx, qy };
       nodes.push(imgNode);
       placeImage();
       simulation.nodes(nodes);
@@ -253,15 +262,24 @@ function renderCategories(container, categories) {
     imgEl = el;
     container.insertBefore(el, svg.nextSibling);
   }
-  // pin image to the bottom centre of the graph panel
-  function placeImage() {
+  function placeImage(active) {
     if (!imgNode || !imgEl) return;
     const { w, h } = size();
-    const isMobile = window.innerWidth <= 880;
-    imgNode.fx = imgNode.x = 0;
-    imgNode.fy = imgNode.y = isMobile ? h * 0.15 : h * 0.35;
-    imgEl.style.left = `${w / 2}px`;
-    imgEl.style.top = `${h / 2 + imgNode.fy}px`;
+    if (window.innerWidth <= 880) {
+      // mobile: pin to bottom centre
+      imgNode.fx = imgNode.x = 0;
+      imgNode.fy = imgNode.y = h * 0.15;
+      imgEl.style.left = `${w / 2}px`;
+      imgEl.style.top = `${h / 2 + imgNode.fy}px`;
+    } else {
+      // desktop: opposite quadrant from the active node
+      if (active) { imgNode.qx = active.x > 0 ? -1 : 1; imgNode.qy = active.y > 0 ? -1 : 1; }
+      if (!imgNode.qx) { imgNode.qx = 1; imgNode.qy = 1; }
+      imgNode.fx = imgNode.x = imgNode.qx * w * 0.25;
+      imgNode.fy = imgNode.y = imgNode.qy * h * 0.25;
+      imgEl.style.left = `${w / 2 + imgNode.fx}px`;
+      imgEl.style.top = `${h / 2 + imgNode.fy}px`;
+    }
   }
 
   function visibleItems() {
@@ -332,7 +350,8 @@ function renderCategories(container, categories) {
     // the single open node is the deepest expanded one; its ancestors stay lit as the path
     const active = items.find(i => expanded.has(i.id) && !i.children.some(c => expanded.has(c.id)));
     const activeId = active ? active.id : null;
-    placeImage();
+    if (active) lastActive = active;
+    placeImage(active);
     const pathIds = new Set();
     for (let p = active; p; p = p.parent) pathIds.add(p.id);
     items.forEach(item => {
@@ -439,6 +458,15 @@ function renderCategories(container, categories) {
       line.setAttribute('x2', cx + l.target.x);
       line.setAttribute('y2', cy + l.target.y);
     });
+    if (imgNode && imgEl && lastActive) {
+      imgLine.style.display = '';
+      imgLine.setAttribute('x1', cx + lastActive.x);
+      imgLine.setAttribute('y1', cy + lastActive.y);
+      imgLine.setAttribute('x2', cx + imgNode.x - imgEl.offsetWidth / 2);
+      imgLine.setAttribute('y2', cy + imgNode.y + imgEl.offsetHeight / 2);
+    } else {
+      imgLine.style.display = 'none';
+    }
   }
 
   window.addEventListener('resize', () => simulation.alpha(0.3).restart());
