@@ -136,6 +136,7 @@ const SECTION_IMAGES = {
   'Link rot / Realities of link rot': './content/realitiesoflinkrot.jpg',
   'Internet in organic': './content/internetinorganic.jpg',
   'Permacomputing': './content/Permacomputing.jpg',
+  'Archive / Tools': './content/tools.jpg',
   'Infrastructure / Physical storage': './content/Physicalstorage.jpg',
   'Infrastructure / Internet / Size of the web': './content/sizeofweb.jpg',
 };
