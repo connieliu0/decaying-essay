@@ -135,6 +135,7 @@ const SECTION_IMAGES = {
   'Link rot / Benefits of letting go of': './content/benefitsoflettinggo.jpg',
   'Link rot / Realities of link rot': './content/realitiesoflinkrot.jpg',
   'Internet in organic': './content/internetinorganic.jpg',
+  'linkdump2': './content/linkdump2.png',
   'Permacomputing': './content/Permacomputing.jpg',
   'Archive / Tools': './content/tools.jpg',
   'Infrastructure / Physical storage': './content/Physicalstorage.jpg',
@@ -150,6 +151,7 @@ function imageForPath(path) {
 }
 
 const PREVIEW_EXCLUDED = new Set(['Internet in organic']);
+const SECTION_IMAGE_CENTERED = new Set(['linkdump2', '__centered__']);
 
 function renderCategories(container, categories) {
   container.innerHTML = '';
@@ -232,9 +234,10 @@ function renderCategories(container, categories) {
   let imgEl = null;
   let imgUrl = null;
   let lastActive = null;
-  function setImage(url) {
+  function setImage(url, path) {
     if (url === imgUrl) return;
     imgUrl = url;
+    const centered = path && SECTION_IMAGE_CENTERED.has(path.split('/')[0].trim());
     if (imgEl) {
       const old = imgEl;
       old.classList.remove('graph-image--visible');
@@ -244,13 +247,13 @@ function renderCategories(container, categories) {
     imgEl = imgNode = null;
     if (!url) { simulation.nodes(nodes); simulation.alpha(0.3).restart(); return; }
     const el = document.createElement('img');
-    el.className = 'graph-image';
+    el.className = centered ? 'graph-image graph-image--centered' : 'graph-image';
     el.alt = '';
     el.addEventListener('load', () => {
       if (imgEl !== el) return;
       const qx = lastActive ? (lastActive.x > 0 ? -1 : 1) : -1;
       const qy = lastActive ? (lastActive.y > 0 ? -1 : 1) : -1;
-      imgNode = { id: '__image', w: el.offsetWidth, h: el.offsetHeight, x: 0, y: 0, qx, qy };
+      imgNode = { id: '__image', w: el.offsetWidth, h: el.offsetHeight, x: 0, y: 0, qx, qy, centered };
       nodes.push(imgNode);
       placeImage();
       simulation.nodes(nodes);
@@ -265,6 +268,13 @@ function renderCategories(container, categories) {
   function placeImage(active) {
     if (!imgNode || !imgEl) return;
     const { w, h } = size();
+    if (imgNode.centered) {
+      imgNode.fx = imgNode.x = 0;
+      imgNode.fy = imgNode.y = 0;
+      imgEl.style.left = `${w / 2}px`;
+      imgEl.style.top = `${h / 2}px`;
+      return;
+    }
     if (window.innerWidth <= 880) {
       // mobile: pin to bottom centre
       imgNode.fx = imgNode.x = 0;
@@ -462,8 +472,10 @@ function renderCategories(container, categories) {
       imgLine.style.display = '';
       imgLine.setAttribute('x1', cx + lastActive.x);
       imgLine.setAttribute('y1', cy + lastActive.y);
-      imgLine.setAttribute('x2', cx + imgNode.x - imgEl.offsetWidth / 2);
-      imgLine.setAttribute('y2', cy + imgNode.y + imgEl.offsetHeight / 2);
+      const imgCornerX = imgNode.x + (lastActive.x > imgNode.x ? 1 : -1) * imgEl.offsetWidth / 2;
+      const imgCornerY = imgNode.y + (lastActive.y > imgNode.y ? 1 : -1) * imgEl.offsetHeight / 2;
+      imgLine.setAttribute('x2', cx + imgCornerX);
+      imgLine.setAttribute('y2', cy + imgCornerY);
     } else {
       imgLine.style.display = 'none';
     }
@@ -478,8 +490,13 @@ function renderCategories(container, categories) {
       setImage(null);
       update();
     },
+    showImageOnly(url) {
+      expanded.clear();
+      setImage(url, '__centered__');
+      update();
+    },
     openCategory(path, image) {
-      setImage(image || imageForPath(path));
+      setImage(image || imageForPath(path), path);
       const norm = t => t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
       const chain = [];
       let level = tops;
@@ -644,14 +661,20 @@ function renderTreeView(container, categories) {
     columnsEl.children[0].querySelectorAll('.tree-col-item').forEach(r => r.classList.remove('is-active'));
     persistentG.innerHTML = '';
     hoverG.innerHTML = '';
-    treeImg.classList.remove('tree-section-image--visible');
+    treeImg.classList.remove('tree-section-image--visible', 'tree-section-image--centered');
   }
 
   container._tree = {
     reset: resetTree,
     show() { svg.style.display = ''; drawLines(); },
     hide() { svg.style.display = 'none'; },
+    showImageOnly(url) {
+      resetTree();
+      treeImg.src = url;
+      treeImg.classList.add('tree-section-image--visible', 'tree-section-image--centered');
+    },
     openCategory(path) {
+      treeImg.classList.remove('tree-section-image--centered');
       const parts = path.split('/').map(p => p.trim()).filter(Boolean);
       resetTree();
       let level = tops;
@@ -1452,7 +1475,7 @@ function initGuides() {
   drag(vHandle, 'x', setSplit);
   drag(hHandle, 'y', setLine);
 
-  const sentences = Array.from(document.querySelectorAll('.sent[data-category]'));
+  const sentences = Array.from(document.querySelectorAll('.sent[data-category], .sent[data-image]'));
   let active = null;
   let queued = false;
 
@@ -1479,10 +1502,17 @@ function initGuides() {
     }
     active.classList.add('is-reading');
     const graph = document.querySelector('#category-list')._graph;
-    if (graph) graph.openCategory(active.dataset.category, active.dataset.image);
-    else { active.classList.remove('is-reading'); active = null; setTimeout(scheduleCheck, 500); }
-    const tree = document.querySelector('#tree-list')._tree;
-    if (tree) tree.openCategory(active.dataset.category);
+    if (active.dataset.image && !active.dataset.category) {
+      if (graph) graph.showImageOnly(active.dataset.image);
+      else { active.classList.remove('is-reading'); active = null; setTimeout(scheduleCheck, 500); }
+      const tree = document.querySelector('#tree-list')._tree;
+      if (tree) tree.showImageOnly(active.dataset.image);
+    } else {
+      if (graph) graph.openCategory(active.dataset.category, active.dataset.image);
+      else { active.classList.remove('is-reading'); active = null; setTimeout(scheduleCheck, 500); }
+      const tree = document.querySelector('#tree-list')._tree;
+      if (tree) tree.openCategory(active.dataset.category);
+    }
   }
   function scheduleCheck() {
     if (!queued) { queued = true; requestAnimationFrame(check); }
