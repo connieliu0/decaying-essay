@@ -1533,3 +1533,28 @@ function initGuides() {
   window.addEventListener('resize', updateRefOpacity);
   updateRefOpacity();
 }
+
+// Newsletter subscription
+(function() {
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylPGBqsBh6gH_1bsKGo0IcybmY2sDZXs8kuSY_FROYwktv_7i0kj25qabEmlzRJdp4Zw/exec';
+  const form = document.getElementById('newsletter-form');
+  const msg = document.querySelector('.newsletter-bar__msg');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = form.querySelector('input').value.trim();
+    msg.textContent = 'Sending…';
+    try {
+      const params = new URLSearchParams({ email, tag: 'newsletter' });
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: params,
+      });
+      msg.textContent = 'Subscribed!';
+      form.reset();
+    } catch {
+      msg.textContent = 'Something went wrong, try again.';
+    }
+  });
+})();

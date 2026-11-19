@@ -716,11 +716,11 @@ iframe {
   opacity: 1;
 }
 
-.graph-node--top:not(.is-open) {
+.graph-node:not(.graph-node--top):not(.is-open) {
   opacity: 0.7;
 }
 
-.graph-node--top.graph-node--visible:hover {
+.graph-node:not(.graph-node--top).graph-node--visible:hover {
   opacity: 1;
 }
 
@@ -879,4 +879,52 @@ iframe {
 .graph-node--link.graph-node--child {
   background: #e6fde0;
   color: darkolivegreen;
+}
+
+/* Newsletter bar */
+.newsletter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 24px;
+  font-family: Arial, sans-serif;
+  font-size: 1.2em;
+}
+.newsletter-bar__label {
+  white-space: nowrap;
+  color: rgb(157, 157, 157);;
+  
+}
+.newsletter-bar__form {
+  display: flex;
+  gap: 4px;
+}
+.newsletter-bar__input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 1em;
+  font-family: inherit;
+  width: 180px;
+  outline: none;
+}
+.newsletter-bar__input:focus {
+  border-color: #98C78B;
+}
+.newsletter-bar__btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
+  color: gray;
+}
+.newsletter-bar__btn:hover {
+  background: #f5f5f5;
+}
+.newsletter-bar__msg {
+  font-size: 0.9em;
+  color: #666;
 }
