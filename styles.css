@@ -1,5 +1,5 @@
 /* guide positions */
-:root { --split: 20vw; --line-y: 25vh; --accent: #D5FFC9; /* one colour for the highlight, reading line and new nodes */
+:root { --split: 20vw; --line-y: 48vh; --accent: #D5FFC9; /* one colour for the highlight, reading line and new nodes */
   --highlight: var(--accent); }
 /* Base styles */
 html, body {
@@ -770,7 +770,7 @@ iframe {
 }
 /* mobile: text in the top half, graph in the bottom half, reading line mid-way up the text */
 @media (max-width: 880px) {
-  :root { --line-y: 25vh; --line-y: 25dvh; }
+  :root { --line-y: 48vh; --line-y: 25dvh; }
   body { padding-bottom: 0; }
   .site-layout { display: block; }
   .app {

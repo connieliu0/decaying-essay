@@ -1442,7 +1442,7 @@ function initGuides() {
     if (mobileQuery.matches) { setLine(0); return; }
     if (moved) return;
     const first = document.querySelector('.app h2 + p');
-    if (first) setLine(first.getBoundingClientRect().bottom+12);
+    if (first) setLine(first.getBoundingClientRect().bottom+16);
   };
   placeStartLine();
   window.addEventListener('load', placeStartLine);
