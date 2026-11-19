@@ -716,11 +716,13 @@ iframe {
   opacity: 1;
 }
 
-.graph-node:not(.graph-node--top):not(.is-open) {
+.graph-node:not(.graph-node--top):not(.is-open):not(.graph-node--child):not(.graph-node--active) {
   opacity: 0.7;
 }
 
-.graph-node:not(.graph-node--top).graph-node--visible:hover {
+.graph-node:not(.graph-node--top).graph-node--visible:hover,
+.graph-node--child,
+.graph-node--active {
   opacity: 1;
 }
 
