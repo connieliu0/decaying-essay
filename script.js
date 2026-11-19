@@ -350,8 +350,8 @@ function renderCategories(container, categories) {
         item.x = origin.x + Math.cos(angle) * dist;
         item.y = origin.y + Math.sin(angle) * dist;
       } else {
-        // top-level nodes start near the left edge
-        item.x = -(w * 0.4);
+        // top-level nodes start near the center
+        item.x = (seeded(index + 3) - 0.5) * w * 0.2;
         item.y = (seeded(index + 7) - 0.5) * h * 0.6;
       }
       nodes.push(item);
@@ -1521,4 +1521,15 @@ function initGuides() {
   window.addEventListener('resize', scheduleCheck);
   window.addEventListener('load', scheduleCheck);
   setTimeout(scheduleCheck, 800); // after the graph has loaded
+
+  // darken reference panel as user scrolls down
+  function updateRefOpacity() {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    const opacity = 0.05 + progress * 0.3;
+    document.documentElement.style.setProperty('--ref-opacity', opacity.toFixed(3));
+  }
+  window.addEventListener('scroll', updateRefOpacity, { passive: true });
+  window.addEventListener('resize', updateRefOpacity);
+  updateRefOpacity();
 }
